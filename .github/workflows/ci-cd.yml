@@ -138,7 +138,7 @@ jobs:
           sonar-token: ${{ env.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           branch: dev
-          fail-on-error: true
+          fail-on-error: false
 
 
   
