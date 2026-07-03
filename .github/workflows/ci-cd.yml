@@ -1,11 +1,11 @@
 name: CI/CD Pipeline - PetClinic
- 
+
 on:
   push:
     branches: [ dev ]
   pull_request:
     branches: [ main ]
- 
+
 env:
   JAVA_VERSION: '25'
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -22,9 +22,9 @@ env:
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
- 
+
 jobs:
-gitleaks:
+  gitleaks:
     name: Gitleaks Secret Scan
     runs-on: ubuntu-latest
     steps:
@@ -32,14 +32,13 @@ gitleaks:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
- 
+
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-build:
+  build:
     name: Build
     runs-on: ubuntu-latest
     needs: gitleaks
@@ -48,17 +47,17 @@ build:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
- 
+
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
- 
+
       - name: Compile and package (skip tests)
         run: mvn -B clean package -DskipTests
- 
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -66,24 +65,24 @@ build:
           path: target/*.jar
           retention-days: 1
 
-test:
+  test:
     name: Test
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
- 
+
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
- 
+
       - name: Run unit tests
         run: mvn -B test
- 
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,4 +90,3 @@ test:
           name: surefire-reports
           path: target/surefire-reports/
           if-no-files-found: ignore
-
